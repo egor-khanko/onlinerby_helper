@@ -4,28 +4,25 @@ require 'byebug'
 require 'json'
 
 
-def scraper
+def get_json
   parsed_json_array = []
-  parsed_products_array = []
-  products = []
-  products_cleaned = []
-  products_info = Hash.new()
   page_number = 0
   last_page = nil
 
   loop do
     page_number += 1
-    url = 'https://catalog.onliner.by/sdapi/catalog.api/search/hdd?page='+page_number.to_s
+    url = 'https://catalog.onliner.by/sdapi/catalog.api/search/hdd?page='+page_number.to_s #generating a URL for a request
+
 
     unparsed_json = HTTParty.get(url).to_s #getting json from API
     parsed_json = JSON.parse(unparsed_json)
     parsed_json_array.push(parsed_json) #making an array of parsed JSONs
 
-    if last_page.nil? #defining last page
+    if last_page.nil? #defining last page if not already defined
       last_page = parsed_json["page"]["last"]
     end
 
-    puts "Getting page  № #{page_number}"
+    puts "Getting page  № #{page_number}" #notifying the user about the progress
     if page_number > last_page
       puts "Parsing is done!"
       break
@@ -33,7 +30,16 @@ def scraper
 
   end
 
-  parsed_json_array.each{|value| value["products"].each{|value| products.push(value)}} #mapping products into array
+  return parsed_json_array
+end
+
+
+def scraper
+  products = []
+  products_cleaned = []
+  products_info = Hash.new()
+
+  get_json.each{|value| value["products"].each{|value| products.push(value)}} #extracting products from json into "products" array
   
   products.each{|value| if value["prices"] != nil then products_cleaned.push(value) end} #making a new array of products without price
 
