@@ -3,6 +3,7 @@ require 'httparty'
 require 'byebug'
 require 'json'
 
+FILE_PATH = "parsed_json.txt"
 
 def get_json
   parsed_json_array = []
@@ -18,21 +19,30 @@ def get_json
     parsed_json = JSON.parse(unparsed_json)
     parsed_json_array.push(parsed_json) #making an array of parsed JSONs
 
-    if last_page.nil? #defining last page if not already defined
+    if last_page.nil? #defining last page i not already defined
       last_page = parsed_json["page"]["last"]
     end
 
-    puts "Getting page  № #{page_number}" #notifying the user about the progress
-    if page_number > last_page
-      puts "Parsing is done!"
+    if File.exists?(FILE_PATH)
+      File.foreach(FILE_PATH){|json_page_string| parsed_json_array.push(eval(json_page_string.to_json))} #need to convert string to hash object
       break
     end
 
+    puts "Getting page  № #{page_number}" #notifying the user about the progress
+    if page_number == last_page
+      puts "Parsing is done!"
+      break
+    end
+  end
+
+  if !File.exists?(FILE_PATH)
+    File.write(FILE_PATH, parsed_json_array.join("\n"), mode: "a")
   end
 
   return parsed_json_array
 end
 
+byebug
 
 def scraper
   products = []
