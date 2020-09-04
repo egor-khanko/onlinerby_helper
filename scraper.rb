@@ -9,6 +9,7 @@ def get_json
   parsed_json_array = []
   page_number = 0
   last_page = nil
+  creating_file = File.exists?(FILE_PATH)
 
   loop do
     page_number += 1
@@ -23,9 +24,11 @@ def get_json
       last_page = parsed_json["page"]["last"]
     end
 
-    if File.exists?(FILE_PATH)
-      File.foreach(FILE_PATH){|json_page_string| parsed_json_array.push(eval(json_page_string))} #converting string to hash
+    if creating_file
+      File.foreach(FILE_PATH){|json_page_string| parsed_json_array.push(JSON.parse(json_page_string))} #converting string to hash
       break
+    else
+      File.write(FILE_PATH, unparsed_json + "\n", mode: "a")
     end
 
     puts "Getting page  № #{page_number}" #notifying the user about the progress
@@ -33,10 +36,6 @@ def get_json
       puts "Parsing is done!"
       break
     end
-  end
-
-  if !File.exists?(FILE_PATH)
-    File.write(FILE_PATH, parsed_json_array.join("\n"), mode: "a")
   end
 
   return parsed_json_array
