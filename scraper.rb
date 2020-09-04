@@ -24,7 +24,7 @@ def get_json
     end
 
     if File.exists?(FILE_PATH)
-      File.foreach(FILE_PATH){|json_page_string| parsed_json_array.push(eval(json_page_string.to_json))} #need to convert string to hash object
+      File.foreach(FILE_PATH){|json_page_string| parsed_json_array.push(eval(json_page_string))} #converting string to hash
       break
     end
 
@@ -42,14 +42,13 @@ def get_json
   return parsed_json_array
 end
 
-byebug
-
 def scraper
   products = []
   products_cleaned = []
   products_info = Hash.new()
 
-  get_json.each{|value| value["products"].each{|value| products.push(value)}} #extracting products from json into "products" array
+
+  get_json.each{ |value| value["products"].each_with_index{|value, index| products.push(value)}} #extracting products from json into "products" array
   
   products.each{|value| if value["prices"] != nil then products_cleaned.push(value) end} #making a new array of products without price
 
