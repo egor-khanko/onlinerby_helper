@@ -53,7 +53,6 @@ def scraper
   get_json.each { |value| value["products"].each_with_index { |value, index| products.push(value) } }
 
   # makes a new array of products without price
-  products.each { |value| if value["prices"] != nil then products_cleaned.push(value) end }
   products.each { |value| products_cleaned.push(value) if value["prices"] }
 
   #remove all unnecessary info from array
