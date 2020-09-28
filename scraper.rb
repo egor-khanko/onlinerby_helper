@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'nokogiri'
 require 'httparty'
 require 'byebug'
@@ -48,13 +50,13 @@ def scraper
 
 
   get_json.each{ |value| value["products"].each_with_index{|value, index| products.push(value)}} #extracting products from json into "products" array
-  
+
   products.each{|value| if value["prices"] != nil then products_cleaned.push(value) end} #making a new array of products without price
 
   products_cleaned.each_with_index{ #removing all unnecessary info from array
     |value, index|
     if !value["full_name"].match(/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/).nil?
-      products_info[value["full_name"]] = { 
+      products_info[value["full_name"]] = {
         "volume_str" => value["full_name"][/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/],
         "price"  => value["prices"]["price_min"]["amount"]
       }
@@ -78,7 +80,7 @@ def scraper
   products_info.each{|key, value| #outputing array name and value
     puts "#{key} at #{value["value"].round(2)} BYN/TB"
   }
-  
+
 end
 
 scraper
