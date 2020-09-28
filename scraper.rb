@@ -37,8 +37,8 @@ def get_json
     end
 
     # notify the user about the progress
-    puts "Getting page ##{page_number}"
-    break puts "Parsing is done!" if page_number == last_page
+    print "Retrieving page ##{page_number}\r"
+    break puts "\nParsing is done!" if page_number == last_page
   end
 
   parsed_json_array
