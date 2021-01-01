@@ -28,23 +28,19 @@ end
 settings = SettingsStore.new
 
 data = Scraper.new.scrap
-selected_data = data.select { |_name, price| price <= THRESHOLD }
+selected_data = data.select { |_name, data| data[:price] <= THRESHOLD }
 
 text = ''
 
-text << "*New HDD positions:*\n"
-selected_data.each do |name, price|
-  text << "#{name} at *#{price}* BYN/TB\n"
-end
-
 unless selected_data.empty?
-  concat_prices = selected_data.values.join(',')
+  concat_prices = selected_data.values.map { |data| data[:price] }.join(',')
+
   if (settings.read(:last_prices) || '') == concat_prices
     # data the same, just skip
   else
     text << "*New HDD positions:*\n"
-    selected_data.each do |name, price|
-      text << "#{name} at *#{price}* BYN/TB\n"
+    selected_data.each do |name, data|
+      text << "[#{name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
     end
 
     settings.write(:last_prices, concat_prices)

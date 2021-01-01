@@ -51,20 +51,21 @@ class Scraper
 
     products = []
     products_cleaned = []
-    products_info = {}
 
     # extract products from json into "products" array
-    get_json.each { |value| value["products"].each_with_index { |value, index| products.push(value) } }
+    get_json.each { |value| value['products'].each { |value| products.push(value) } }
 
     # makes a new array of products without price
-    products.each { |value| products_cleaned.push(value) if value["prices"] }
+    products_cleaned = products.select { |value| value['prices'] }
 
     # remove all unnecessary info from array
-    products_cleaned.each_with_index do |value, index|
-      if value["full_name"].match(/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/)
-        products_info[value["full_name"]] = {
-          "volume_str" => value["full_name"][/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/],
-          "price"  => value.dig('prices', 'price_min', 'amount')
+    products_info = products_cleaned.each_with_object({}) do |value, data|
+      if value['full_name'].match(/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/)
+
+        data[value['full_name']] = {
+          'volume_str' => value['full_name'][/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/],
+          'price' => value.dig('prices', 'price_min', 'amount'),
+          'html_url' => value['html_url']
         }
       end
     end
@@ -84,7 +85,7 @@ class Scraper
     products_info = products_info.sort_by { |_key, value| value['value'] } # sort array by value
 
     products_info.each_with_object({}) do |(key, value), memo| # output array name and value
-      memo[key] = value['value']
+      memo[key] = { price: value['value'], url: value['html_url'] }
     end
   end
 
