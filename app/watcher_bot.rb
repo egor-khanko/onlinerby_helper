@@ -28,18 +28,32 @@ end
 settings = SettingsStore.new
 
 data = Scraper.new.scrap
+selected_data = data.select { |_name, price| price <= THRESHOLD }
 
 text = ''
 
-data.each do |name, price|
-  break if price > THRESHOLD
+text << "*New HDD positions:*\n"
+selected_data.each do |name, price|
+  text << "#{name} at *#{price}* BYN/TB\n"
+end
 
-  text << "#{name} at #{price} BYN/TB\n"
+unless selected_data.empty?
+  concat_prices = selected_data.values.join(',')
+  if (settings.read(:last_prices) || '') == concat_prices
+    # data the same, just skip
+  else
+    text << "*New HDD positions:*\n"
+    selected_data.each do |name, price|
+      text << "#{name} at *#{price}* BYN/TB\n"
+    end
+
+    settings.write(:last_prices, concat_prices)
+  end
 end
 
 unless text.empty?
   USERS_TO_SEND.split(',').each do |user_to_send|
-    $bot.api.send_message(chat_id: user_to_send.strip, text: text)
+    $bot.api.send_message(chat_id: user_to_send.strip, text: text, parse_mode: :markdown)
   end
 end
 
