@@ -1,1 +1,2 @@
-parsed_json.txt
+app/parsed_info.json
+*.yml
