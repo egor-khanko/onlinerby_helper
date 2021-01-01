@@ -6,7 +6,7 @@ dir="/volume4/docker/onlinerby_helper"
 if [[ "$1" == "worker" ]]; then
   ssh -t $REMOTE "sudo bash -l -c 'cd $dir && docker-compose up -d --no-deps --build worker'"
 elif [[ "$1" == "init" ]]; then
-  ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git clone git@github.com:Egorpr0/onlinerby_helper.git .'"
+  ssh -t $REMOTE "bash -l -c 'mkdir $dir && cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git clone git@github.com:Egorpr0/onlinerby_helper.git .'"
 else
   echo "Usual deploy"
   ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git pull'"
