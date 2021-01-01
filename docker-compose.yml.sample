@@ -1,0 +1,20 @@
+version: '3'
+services:
+  worker:
+    # name: nas_notifications
+    privileged: true
+    # image: ruby:latest
+    image: bitnami/ruby:2.7
+    # restart: on-failure
+    restart: always
+    command: bash -c 'ruby watcher_bot.rb'
+    working_dir: /usr/app/
+    volumes:
+      - ./app:/usr/app/
+    environment:
+      - BOT_TOKEN=TOKEN_IS_HERE
+      - USERS_TO_SEND=USERS_WHOM_WE_SHOULD_SEND_LOWEST_PRICE
+    logging:
+      driver: json-file
+      options:
+        max-size: "500m"
