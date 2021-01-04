@@ -14,6 +14,7 @@ services:
     environment:
       - BOT_TOKEN=TOKEN_IS_HERE
       - USERS_TO_SEND=USERS_WHOM_WE_SHOULD_SEND_LOWEST_PRICE
+      - THRESHOLD=65
     logging:
       driver: json-file
       options:
