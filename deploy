@@ -9,5 +9,6 @@ if [[ "$1" == "init" ]]; then
 else
   echo "Usual deploy"
   ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git pull'"
-  ssh -t $REMOTE "bash -l -c 'cd $dir && docker-compose up -d --build'"
+  ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git reset --hard origin/master'"
+  ssh -t $REMOTE "bash -l -c 'cd $dir && docker-compose stop && docker-compose up -d --build'"
 fi
