@@ -19,7 +19,9 @@ require_relative 'settings_store'
 
 BOT_TOKEN = ENV['BOT_TOKEN']
 USERS_TO_SEND = ENV['USERS_TO_SEND']
-THRESHOLD = ENV['THRESHOLD'] || 60
+
+THRESHOLD = ENV['THRESHOLD'].to_f
+THRESHOLD = 60 if THRESHOLD.zero?
 
 Telegram::Bot::Client.run(BOT_TOKEN) do |bot|
   $bot = bot
