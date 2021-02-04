@@ -10,10 +10,14 @@ gemfile do
   gem 'httparty'
   gem 'byebug'
   gem 'json'
+  gem 'geckodriver-helper'
+  gem 'selenium-webdriver'
+  gem 'watir-screenshot-stitch'
   gem 'telegram-bot-ruby'
 end
 
 require 'telegram/bot'
+require 'watir-screenshot-stitch'
 require_relative 'scraper'
 require_relative 'settings_store'
 
@@ -22,6 +26,7 @@ USERS_TO_SEND = ENV['USERS_TO_SEND']
 
 THRESHOLD = ENV['THRESHOLD'].to_f
 THRESHOLD = 60 if THRESHOLD.zero?
+BASE_DIR = '/usr/app'
 
 Telegram::Bot::Client.run(BOT_TOKEN) do |bot|
   $bot = bot
@@ -32,7 +37,44 @@ settings = SettingsStore.new
 data = Scraper.new.scrap
 selected_data = data.select { |_name, data| data[:price] <= THRESHOLD }
 
-text = ''
+def download_image(url)
+  path = File.join(BASE_DIR, 'image.png')
+
+  b = Watir::Browser.new(:firefox, timeout: 120, url: 'http://selenium:4444/wd/hub')
+  b.goto(url)
+
+  File.delete(path) if File.exist?(path)
+
+  sleep(3)
+  # https://github.com/samnissen/watir-screenshot-stitch
+  png = b.screenshot.base64_geckodriver
+
+  File.open(path, 'wb') { |f| f.write(Base64.decode64(png)) }
+
+  sleep(0.5)
+
+  true
+rescue StandardError => e
+  puts "failed to download with: #{e.message}"
+  false
+end
+
+def send_image(text)
+  USERS_TO_SEND.split(',').each do |user_to_send|
+    file_path = File.join(BASE_DIR, 'image.png')
+    begin
+      $bot.api.send_photo(chat_id: user_to_send.strip, caption: text, photo: Faraday::UploadIO.new(file_path, ''))
+    rescue Telegram::Bot::Exceptions::ResponseError => e
+      puts "Failed to upload file #{file_path} as photo"
+    end
+  end
+end
+
+def send_text(text)
+  USERS_TO_SEND.split(',').each do |user_to_send|
+    $bot.api.send_message(chat_id: user_to_send.strip, text: text, parse_mode: :markdown)
+  end
+end
 
 unless selected_data.empty?
   concat_prices = selected_data.values.map { |data| data[:price] }.join(',')
@@ -40,20 +82,22 @@ unless selected_data.empty?
   if (settings.read(:last_prices) || '') == concat_prices
     # data the same, just skip
   else
-    text << "*New HDD positions:*\n"
+    send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
     selected_data.each do |name, data|
-      text << "[#{name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
+
+      if download_image(data[:url])
+        text = "#{name} - #{data[:url]} at *#{data[:price]}* BYN/TB\n"
+        send_image(text)
+      else
+        fixed_name = name.tr('[', '{').tr(']', '}')
+        text = "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
+        send_text(text)
+      end
     end
 
     settings.write(:last_prices, concat_prices)
   end
 end
 
-unless text.empty?
-  USERS_TO_SEND.split(',').each do |user_to_send|
-    $bot.api.send_message(chat_id: user_to_send.strip, text: text, parse_mode: :markdown)
-  end
-end
-
-wait_time = 60 * 60 * 3 # 3 hours
+wait_time = 60 * 60 * 1.5 # 1.5 hours
 sleep(wait_time)
