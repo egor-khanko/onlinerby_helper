@@ -86,7 +86,7 @@ unless selected_data.empty?
     selected_data.each do |name, data|
 
       if download_image(data[:url])
-        text = "#{name} - #{data[:url]} at *#{data[:price]}* BYN/TB\n"
+        text = "#{name} - #{data[:url]} at #{data[:price]} BYN/TB\n"
         send_image(text)
       else
         fixed_name = name.tr('[', '{').tr(']', '}')
