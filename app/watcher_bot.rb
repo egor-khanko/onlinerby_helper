@@ -96,8 +96,7 @@ unless selected_data.empty?
         end
       end
     else
-      send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
-      all_text = []
+      all_text = ["======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* ========="]
       selected_data.each do |name, data|
         fixed_name = name.tr('[', '{').tr(']', '}')
         all_text << "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB"
