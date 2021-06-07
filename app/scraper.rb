@@ -60,14 +60,14 @@ class Scraper
 
     # remove all unnecessary info from array
     products_info = products_cleaned.each_with_object({}) do |value, data|
-      if value['full_name'].match(/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/)
+      next unless value['full_name'].match(/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/)
+      next if value['description'].match(/.*SAS.*/) # Skip SAS drives
 
-        data[value['full_name']] = {
-          'volume_str' => value['full_name'][/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/],
-          'price' => value.dig('prices', 'price_min', 'amount'),
-          'html_url' => value['html_url']
-        }
-      end
+      data[value['full_name']] = {
+        'volume_str' => value['full_name'][/[0-9.]{1,4}( )?(TB|GB|Гб|Тб)/],
+        'price' => value.dig('prices', 'price_min', 'amount').to_f,
+        'html_url' => value['html_url']
+      }
     end
 
     products_info.each do |key, value| # make a float volume in TB from string
@@ -79,13 +79,13 @@ class Scraper
     end
 
     products_info.each do |_key, value| # calculate value for each drive
-      value["value"] = (value['price'].to_f / value['volume']).round(2)
+      value["value"] = (value['price'] / value['volume']).round(2)
     end
 
     products_info = products_info.sort_by { |_key, value| value['value'] } # sort array by value
 
     products_info.each_with_object({}) do |(key, value), memo| # output array name and value
-      memo[key] = { price: value['value'], url: value['html_url'] }
+      memo[key] = { price: value['price'], value: value['value'], url: value['html_url'] }
     end
   end
 

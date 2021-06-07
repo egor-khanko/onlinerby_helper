@@ -8,7 +8,7 @@ gemfile do
 
   gem 'nokogiri'
   gem 'httparty'
-  gem 'byebug'
+  gem 'pry-byebug'
   gem 'json'
   gem 'geckodriver-helper'
   gem 'selenium-webdriver'
@@ -18,6 +18,7 @@ end
 
 require 'telegram/bot'
 require 'watir-screenshot-stitch'
+require 'pry'
 require_relative 'scraper'
 require_relative 'settings_store'
 
@@ -25,6 +26,7 @@ BOT_TOKEN = ENV['BOT_TOKEN']
 USERS_TO_SEND = ENV['USERS_TO_SEND']
 
 THRESHOLD = ENV['THRESHOLD'].to_f
+SEND_IMAGES = ENV['SEND_IMAGES'] || false
 THRESHOLD = 60 if THRESHOLD.zero?
 BASE_DIR = '/usr/app'
 
@@ -34,8 +36,7 @@ end
 
 settings = SettingsStore.new
 
-data = Scraper.new.scrap
-selected_data = data.select { |_name, data| data[:price] <= THRESHOLD }
+selected_data = Scraper.new.scrap.select { |_name, data| data[:price] <= THRESHOLD }
 
 def download_image(url)
   path = File.join(BASE_DIR, 'image.png')
@@ -82,17 +83,28 @@ unless selected_data.empty?
   if (settings.read(:last_prices) || '') == concat_prices
     # data the same, just skip
   else
-    send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
-    selected_data.each do |name, data|
-
-      if download_image(data[:url])
-        text = "#{name} - #{data[:url]} at #{data[:price]} BYN/TB\n"
-        send_image(text)
-      else
-        fixed_name = name.tr('[', '{').tr(']', '}')
-        text = "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
-        send_text(text)
+    if SEND_IMAGES
+      send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
+      selected_data.each do |name, data|
+        if download_image(data[:url])
+          text = "#{name} - #{data[:url]} at #{data[:price]} BYN/TB\n"
+          send_image(text)
+        else
+          fixed_name = name.tr('[', '{').tr(']', '}')
+          text = "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
+          send_text(text)
+        end
       end
+    else
+      send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
+      all_text = []
+      selected_data.each do |name, data|
+        fixed_name = name.tr('[', '{').tr(']', '}')
+        all_text << "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB"
+      end
+
+      send_text(all_text.join("\n"))
+      # without images, one list
     end
 
     settings.write(:last_prices, concat_prices)
