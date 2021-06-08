@@ -36,7 +36,7 @@ end
 
 settings = SettingsStore.new
 
-selected_data = Scraper.new.scrap.select { |_name, data| data[:price] <= THRESHOLD }
+selected_data = Scraper.new.scrap.select { |_name, data| data[:value] <= THRESHOLD }
 
 def download_image(url)
   path = File.join(BASE_DIR, 'image.png')
