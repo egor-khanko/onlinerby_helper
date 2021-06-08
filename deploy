@@ -1,7 +1,7 @@
 #!/bin/bash
 source 'remote_help.sh'
 
-dir="/volume4/docker/onlinerby_helper"
+dir="/home/vano/onlinerby_helper"
 url="git@github.com:Egorpr0/onlinerby_helper.git"
 
 if [[ "$1" == "init" ]]; then

@@ -78,7 +78,7 @@ def send_text(text)
 end
 
 unless selected_data.empty?
-  concat_prices = selected_data.values.map { |data| data[:price] }.join(',')
+  concat_prices = selected_data.values.map { |data| data[:value] }.join(',')
 
   if (settings.read(:last_prices) || '') == concat_prices
     # data the same, just skip
@@ -87,11 +87,11 @@ unless selected_data.empty?
       send_text("======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* =========")
       selected_data.each do |name, data|
         if download_image(data[:url])
-          text = "#{name} - #{data[:url]} at #{data[:price]} BYN/TB\n"
+          text = "#{name} - #{data[:url]} at #{data[:value]} BYN/TB (#{data[:price]}BYN)"
           send_image(text)
         else
           fixed_name = name.tr('[', '{').tr(']', '}')
-          text = "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB\n"
+          text = "[#{fixed_name}](#{data[:url]}) at *#{data[:value]}* BYN/TB (#{data[:price]}BYN)"
           send_text(text)
         end
       end
@@ -99,7 +99,7 @@ unless selected_data.empty?
       all_text = ["======= *#{Time.now.strftime('%Y.%m.%d %H:%M')}* ========="]
       selected_data.each do |name, data|
         fixed_name = name.tr('[', '{').tr(']', '}')
-        all_text << "[#{fixed_name}](#{data[:url]}) at *#{data[:price]}* BYN/TB"
+        all_text << "[#{fixed_name}](#{data[:url]}) at *#{data[:value]}* BYN/TB (#{data[:price]}BYN)"
       end
 
       send_text(all_text.join("\n"))
