@@ -3,12 +3,14 @@ source 'remote_help.sh'
 
 dir="/home/vano/onlinerby_helper"
 url="git@github.com:Egorpr0/onlinerby_helper.git"
+gitcommand="git"
+# gitcommand="docker run -ti --rm -v /root:/root -v $dir:/git alpine/git"
 
 if [[ "$1" == "init" ]]; then
-  ssh -t $REMOTE "bash -l -c 'mkdir $dir && cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git clone $url .'"
+  ssh -t $REMOTE "bash -l -c 'mkdir $dir && cd $dir && $gitcommand clone $url .'"
 else
   echo "Usual deploy"
-  ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git pull'"
-  ssh -t $REMOTE "bash -l -c 'cd $dir && docker run -ti --rm -v /root:/root -v $dir:/git alpine/git reset --hard origin/master'"
+  ssh -t $REMOTE "bash -l -c 'cd $dir && $gitcommand pull'"
+  ssh -t $REMOTE "bash -l -c 'cd $dir && $gitcommand reset --hard origin/master'"
   ssh -t $REMOTE "bash -l -c 'cd $dir && docker-compose stop && docker-compose up -d --build'"
 fi

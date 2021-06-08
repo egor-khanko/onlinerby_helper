@@ -7,7 +7,7 @@ NC='\033[0m' # No Color
 
 # # ~/.ssh/config should contain this:
 #
-# Host nas_root
+# Host portainer
 #   HostName 192.168.1.235
 #   User root
-REMOTE="nas_root"
+REMOTE="vano@192.168.1.12"
