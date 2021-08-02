@@ -3,6 +3,8 @@ $stdout.sync = true
 
 require 'bundler/inline'
 
+puts  "Starting fetching gems"
+
 gemfile do
   source 'https://rubygems.org'
 
@@ -16,6 +18,7 @@ gemfile do
   gem 'telegram-bot-ruby'
 end
 
+puts  "Finished fetching gems"
 require 'telegram/bot'
 require 'watir-screenshot-stitch'
 require 'pry'
